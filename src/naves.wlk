@@ -37,7 +37,15 @@ class NaveEspacial {
 	
 	// método abstracto
 	method avisar()
+	
+	method estaDeRelajo() {
+		return self.estaTranquila() and self.tienePocaActividad()
+	}
+	
+	// método abstracto
+	method tienePocaActividad()
 }
+
 
 class NaveBaliza inherits NaveEspacial {
 	override method prepararViaje() {
@@ -51,6 +59,7 @@ class NaveDePasajeros inherits NaveEspacial {
 	var property pasajeros = 0
 	var property racionesDeComida = 0
 	var property racionesDeBebida = 0
+	var racionesServidas = 0
 	
 	method cargarComida(cuantasRaciones) {
 //		racionesDeComida = racionesDeComida + cuantasRaciones 
@@ -59,6 +68,7 @@ class NaveDePasajeros inherits NaveEspacial {
 	method descargarComida(cuantasRaciones) {
 		racionesDeComida = 
 			(racionesDeComida - cuantasRaciones).max(0)
+		racionesServidas += cuantasRaciones
 	}
 	method cargarBebida(cuantasRaciones) {
 		racionesDeBebida += cuantasRaciones 
@@ -82,6 +92,10 @@ class NaveDePasajeros inherits NaveEspacial {
 	override method avisar() {
 		self.descargarComida(pasajeros)
 		self.descargarBebida(pasajeros * 2)
+	}
+
+	override method tienePocaActividad() {
+		return racionesServidas < 50
 	}
 }
 
@@ -124,6 +138,9 @@ class NaveDeCombate inherits NaveEspacial {
 		self.emitirMensaje("Amenaza recibida")
 	}
 
+	override method tienePocaActividad() {
+		return true
+	}
 	// el resto se lo dejamos	
 }
 

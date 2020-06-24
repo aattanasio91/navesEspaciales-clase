@@ -3,7 +3,9 @@ class NaveEspacial {
 	var property direccion = 0	
 	var property combustible = 0
 	
-	method acelerar(cuanto) { velocidad = (velocidad + cuanto).min(100000) }
+	method acelerar(cuanto) { 
+		velocidad = (velocidad + cuanto).min(100000)
+	}
 	method desacelerar(cuanto) { velocidad -= cuanto }
 	
 	method irHaciaElSol() { direccion = 10 }
@@ -24,6 +26,17 @@ class NaveEspacial {
 	method estaTranquila() {
 		return combustible >= 4000 and velocidad <= 12000 
 	}
+	
+	method recibirAmenaza() {
+		self.escapar()
+		self.avisar()
+	}
+	
+	// método abstracto
+	method escapar() 
+	
+	// método abstracto
+	method avisar()
 }
 
 class NaveBaliza inherits NaveEspacial {
@@ -44,19 +57,31 @@ class NaveDePasajeros inherits NaveEspacial {
 		racionesDeComida += cuantasRaciones 
 	}
 	method descargarComida(cuantasRaciones) {
-		racionesDeComida = (racionesDeComida - cuantasRaciones).max(0)
+		racionesDeComida = 
+			(racionesDeComida - cuantasRaciones).max(0)
 	}
 	method cargarBebida(cuantasRaciones) {
 		racionesDeBebida += cuantasRaciones 
 	}
 	method descargarBebida(cuantasRaciones) {
-		racionesDeBebida = (racionesDeBebida - cuantasRaciones).max(0)
+		racionesDeBebida = 
+			(racionesDeBebida - cuantasRaciones).max(0)
 	}
 	override method prepararViaje() {
 		super()
 		self.cargarComida(pasajeros * 4)
 		self.cargarBebida(pasajeros * 6)
 		self.acercarseUnPocoAlSol()
+	}
+
+	override method escapar() {
+		// duplico la velocidad
+		self.acelerar(self.velocidad())
+	} 
+	
+	override method avisar() {
+		self.descargarComida(pasajeros)
+		self.descargarBebida(pasajeros * 2)
 	}
 }
 
@@ -65,6 +90,10 @@ class NaveDeCombate inherits NaveEspacial {
 	method primerMensajeEmitido() {
 		return mensajesEmitidos.first()
 	}
+	method emitirMensaje(mensaje) {
+		mensajesEmitidos.add(mensaje)
+	}
+	
 	override method prepararViaje() {
 		super()
 		self.acelerar(15000)
@@ -78,10 +107,23 @@ class NaveDeCombate inherits NaveEspacial {
 		return true 
 		// cambiar por implementación correcta
 	}
+	method ponerseInvisible() {
+		// completar
+	}
 	
 	override method estaTranquila() {
 		return super() and not self.misilesDesplegados()
 	}
+
+	override method escapar() {
+		self.acercarseUnPocoAlSol()
+		self.acercarseUnPocoAlSol()
+	} 
+	
+	override method avisar() {
+		self.emitirMensaje("Amenaza recibida")
+	}
+
 	// el resto se lo dejamos	
 }
 
@@ -90,18 +132,24 @@ class NaveHospital inherits NaveDePasajeros {
 	override method estaTranquila() {
 		return super() and not self.quirofanosPreparados()
 	}
+	override method recibirAmenaza() {
+		super()
+		self.quirofanosPreparados(true)
+	}
 }
 
 class NaveDeCombateSigilosa inherits NaveDeCombate {
 	override method estaTranquila() {
 		return super() and self.estaVisible()
 	}
+	override method escapar() {
+		super()
+		// falta desplegar misiles
+		self.ponerseInvisible()
+	}
 }
 
 class NaveDeCombateSigilosaPlus inherits NaveDeCombateSigilosa {
-	method estaPerfecta() {
-		return self.estaTranquila() or self.combustible() > 200000
-	}
 	override method estaVisible() {
 		return false
 	}

@@ -32,8 +32,10 @@ class NaveEspacial {
 		self.avisar()
 	}
 	
-	// método abstracto
-	method escapar() 
+
+	method escapar() {
+		
+	}
 	
 	// método abstracto
 	method avisar()
@@ -48,11 +50,44 @@ class NaveEspacial {
 
 
 class NaveBaliza inherits NaveEspacial {
+	var property baliza = null
+	var property cambioBalizaAlgunaVez = false
+	
+	method cambiarColorDeBaliza(colorNuevo){
+		self.baliza(colorNuevo)
+		self.cambioBalizaAlgunaVez(true)
+	}
+	
 	override method prepararViaje() {
 		super()
-		// completar
+		self.cambiarColorDeBaliza("verde")
+		self.ponerseParaleloAlSol()
 	}
-	// esta se las dejamos
+	
+	override method estaTranquila(){
+		return super() and self.baliza() != "rojo"
+	}
+	
+	override method escapar(){
+		self.irHaciaElSol()
+	}
+	
+	override method avisar(){
+		self.baliza("rojo")
+	}
+	
+	override method recibirAmenaza(){
+		self.escapar()
+		self.avisar()
+	}
+	
+	override method tienePocaActividad(){
+		return not self.cambioBalizaAlgunaVez()
+	}
+	
+	override method estaDeRelajo(){
+		return self.estaTranquila() and self.tienePocaActividad()
+	}
 }
 
 class NaveDePasajeros inherits NaveEspacial {
@@ -66,8 +101,7 @@ class NaveDePasajeros inherits NaveEspacial {
 		racionesDeComida += cuantasRaciones 
 	}
 	method descargarComida(cuantasRaciones) {
-		racionesDeComida = 
-			(racionesDeComida - cuantasRaciones).max(0)
+		racionesDeComida = (racionesDeComida - cuantasRaciones).max(0)
 		racionesServidas += cuantasRaciones
 	}
 	method cargarBebida(cuantasRaciones) {
@@ -85,8 +119,7 @@ class NaveDePasajeros inherits NaveEspacial {
 	}
 
 	override method escapar() {
-		// duplico la velocidad
-		self.acelerar(self.velocidad())
+		self.acelerar(self.velocidad()*2)
 	} 
 	
 	override method avisar() {
@@ -97,32 +130,62 @@ class NaveDePasajeros inherits NaveEspacial {
 	override method tienePocaActividad() {
 		return racionesServidas < 50
 	}
+	
+	override method recibirAmenaza(){
+		self.escapar()
+		self.avisar()
+	}
+	
+	override method estaDeRelajo(){
+		return self.estaTranquila() and self.tienePocaActividad() 
+	}
 }
 
 class NaveDeCombate inherits NaveEspacial {
 	const property mensajesEmitidos = []
-	method primerMensajeEmitido() {
-		return mensajesEmitidos.first()
-	}
+	var property esVisible = false
+	var property misilesDesplegados = false
+	
+//	Mensajes
 	method emitirMensaje(mensaje) {
-		mensajesEmitidos.add(mensaje)
+		self.mensajesEmitidos().add(mensaje)
+	}
+	method emitioMensaje(mensaje) {
+		return self.mensajesEmitidos().contains(mensaje)
+	}
+	method primerMensajeEmitido() {
+		return self.mensajesEmitidos().first()
+	}
+	
+	method ultimoMensajeEmitido(){
+		return self.mensajesEmitidos().last()
+	}
+	
+	method esEscueta(){
+		return self.mensajesEmitidos().any({mensaje => mensaje.size() > 30})
 	}
 	
 	override method prepararViaje() {
 		super()
 		self.acelerar(15000)
-		// completar
+		self.ponerseVisible()
+		self.replegarMisiles()
+		self.emitirMensaje("Saliendo en misión")
+		
 	}
 	method misilesDesplegados() {
-		return true 
-		// cambiar por implementación correcta
+		return self.misilesDesplegados() 
 	}
 	method estaVisible() {
-		return true 
-		// cambiar por implementación correcta
+		return self.esVisible()
 	}
+	
+	method ponerseVisible(){
+		self.esVisible(true)
+	}
+	
 	method ponerseInvisible() {
-		// completar
+		self.esVisible(false)
 	}
 	
 	override method estaTranquila() {
@@ -141,14 +204,34 @@ class NaveDeCombate inherits NaveEspacial {
 	override method tienePocaActividad() {
 		return true
 	}
-	// el resto se lo dejamos	
+	
+	method replegarMisiles(){
+		self.misilesDesplegados(false) 
+	}
+	
+	method desplegarMisiles(){
+		self.misilesDesplegados(true)
+	}
+	
+	override method recibirAmenaza(){
+		self.escapar()
+		self.avisar()
+	}
+	
+	override method estaDeRelajo(){
+		return self.esEscueta()
+	}
+	
 }
 
 class NaveHospital inherits NaveDePasajeros {
+	
 	var property quirofanosPreparados = false
+	
 	override method estaTranquila() {
 		return super() and not self.quirofanosPreparados()
 	}
+	
 	override method recibirAmenaza() {
 		super()
 		self.quirofanosPreparados(true)
@@ -156,12 +239,14 @@ class NaveHospital inherits NaveDePasajeros {
 }
 
 class NaveDeCombateSigilosa inherits NaveDeCombate {
+	
 	override method estaTranquila() {
 		return super() and self.estaVisible()
 	}
+	
 	override method escapar() {
 		super()
-		// falta desplegar misiles
+		super().desplegarMisiles()
 		self.ponerseInvisible()
 	}
 }
